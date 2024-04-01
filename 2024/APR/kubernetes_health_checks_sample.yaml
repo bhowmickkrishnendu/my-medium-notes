@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-application
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: web-app
+  template:
+    metadata:
+      labels:
+        app: web-app
+    spec:
+      containers:
+      - name: web-app
+        image: mycompany/web-app:v1.0
+        ports:
+        - containerPort: 8080
+        
+        # Startup Probe
+        startupProbe:
+          httpGet:
+            path: /healthz/startup
+            port: 8080
+          failureThreshold: 30  # Allow up to 5 minutes for startup (30 * 10 seconds)
+          periodSeconds: 10
+          timeoutSeconds: 5
+        
+        # Liveness Probe
+        livenessProbe:
+          httpGet:
+            path: /healthz/live
+            port: 8080
+          initialDelaySeconds: 45
+          periodSeconds: 15
+          failureThreshold: 3
+          timeoutSeconds: 5
+        
+        # Readiness Probe
+        readinessProbe:
+          httpGet:
+            path: /healthz/ready
+            port: 8080
+          periodSeconds: 10
+          failureThreshold: 2
+          timeoutSeconds: 3
